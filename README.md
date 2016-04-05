@@ -12,6 +12,6 @@ Learning is the process which every software engineer should be familiar with. U
 The way of solving this problem is in presentation of the ideas that lay inside algorithms.
 The one of the to achieve that is to show what algorithm actually does (instead of how it's actually implemented).
 
-The main goal is to build a visualiser for algorithm.
+***The main goal is to build a visualiser for algorithm.***
 
 ### Technical details
