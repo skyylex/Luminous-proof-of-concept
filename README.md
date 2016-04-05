@@ -17,3 +17,8 @@ One of the approached to achieve that is to show what algorithm actually does (i
 At this moment (2016) there are no widely used best practices for such kind of task. In 70th there were flowcharts, unfortunately they have no a lot of effort. 
 
 ### Technical details
+
+##### Several components:
+- *Parser.*
+- *Interpretator*
+- *Visualiser*
