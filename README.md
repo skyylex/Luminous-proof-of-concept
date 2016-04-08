@@ -22,3 +22,11 @@ At this moment (2016) there are no widely used best practices for such kind of t
 - *Parser.*
 - *Interpretator*
 - *Visualiser*
+
+##### Source analyzer
+
+- Task 1. Source analyzer could build tree of variable's dependencies of each other.
+- Task 2. Recognizing variable's roles in the output result calculation.
+
+##### Data flow.
+- Task 1. Data snapshots diff findout for different types of common data types.
