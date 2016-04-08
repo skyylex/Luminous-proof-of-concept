@@ -1,6 +1,6 @@
 a_list = [54, 26, 93, 17, 77, 31, 44, 55, 20]
 
-def merge_sort(a_list):
+def merge_sort(a_list, b_list):
     print("Splitting ", a_list)
     if len(a_list) > 1:
         mid = len(a_list) // 2
