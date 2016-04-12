@@ -1,5 +1,44 @@
 import ast
 
+class FunctionCall:
+    # Semantic
+    callFuncName = ""
+    arguments = ()
+
+    # Location
+    linePosition = 0
+    indentation = 0
+    containerFunction = ""
+
+    def __str__(self):
+        return self.callFuncName + " " + str(self.linePosition)
+
+
+class FunctionDeclaration:
+    name = ""
+    arguments = ()
+    startPosition = 0
+    endPosition = 0
+
+    def __str__(self):
+        return self.name + " " + str(self.arguments) + " " + str(self.startPosition) + " " + str(self.endPosition)
+
+
+class Statement:
+    destinationName = ""
+    subscriptIndexName = ""
+    linePosition = 0
+    indentation = 0
+
+    def __str__(self):
+        return self.destinationName + " " + str(self.linePosition)
+
+
+class VariableAsFunction:
+    varName = ""
+    type = "" # ???
+    dependencies = ()
+
 SOURCE_FILE_NAME = "source.py"
 IDENTIFIER_KEY = "id"
 LINE_NUMBER_KEY = "lineno"
@@ -7,87 +46,86 @@ LINE_NUMBER_KEY = "lineno"
 ### Sample of the modification of existing source code
 ### http://stackoverflow.com/questions/768634/parse-a-py-file-read-the-ast-modify-it-then-write-back-the-modified-source-c
 
+
+def process_assign_node(node):
+    return
+
+
+def process_func_call_node(node):
+    functionCall = FunctionCall()
+
+    items = []
+    for arg in node.args:
+        # ast.Name
+        items.append(arg.id)
+
+    functionCall.callFuncName = node.func.id
+    functionCall.arguments = items
+    functionCall.linePosition = node.lineno
+    functionCall.indentation = node.col_offset
+    return functionCall
+
+
+def process_func_declaration_node(node):
+    declaration = FunctionDeclaration()
+
+    function_args = []
+    for arg in node.args.args:
+        # ast.Name
+        function_args.append(arg.id)
+
+    declaration.name = node.name
+    declaration.args = function_args
+    declaration.startPosition = node.lineno
+    for element in node.body:
+        if element.lineno > declaration.endPosition:
+            declaration.endPosition = element.lineno
+
+    return declaration
+
+
 if __name__=="__main__":
     source_file = open(SOURCE_FILE_NAME)
     source_file_content = source_file.read()
     syntax_tree = ast.parse(source_file_content)
 
-    collected_ids = []
-    line_numbers = []
-    function_definitions = {}
+    collected_variable_names = []
+    var_used_line_numbers = []
+    function_declarations = []
     function_calls = []
-
+    statements = []
     for node in ast.walk(syntax_tree):
         print("node.class: " + node.__class__.__name__)
         if node.__class__.__name__ == ast.Assign.__name__:
+            statement = Statement()
             for target in node.targets:
-                print("target.class: " + target.__class__.__name__)
+                print("\ttarget.class: " + target.__class__.__name__)
+
                 if target.__class__.__name__ == ast.Name.__name__:
-                    for field in target._fields:
-                        collected_ids.append(getattr(target, IDENTIFIER_KEY, None))
-                        line_numbers.append(getattr(target, LINE_NUMBER_KEY, None))
+                    statement.destinationName = target.id
+                    statement.linePosition = target.lineno
+                    statement.indentation = target.col_offset
+                    statements.append(statement)
                 else:
                     if target.__class__.__name__ == ast.Subscript.__name__:
-                        value = getattr(target, "value")
-                        if getattr(target, "value").__class__.__name__ == ast.Name.__name__:
-                            collected_ids.append(getattr(value, IDENTIFIER_KEY, None))
-                            line_numbers.append(getattr(target, LINE_NUMBER_KEY, None))
-        elif (node.__class__.__name__ == ast.FunctionDef.__name__):
-            function_def_args = []
-            for arg in node.args.args:
-                # ast.Name
-                function_def_args.append(arg.id)
+                        statement.destinationName = target.value.id
+                        statement.subscriptIndexName = target.slice.value.id
+                        statement.linePosition = target.lineno
+                        statement.indentation = target.col_offset
+                        statements.append(statement)
+        elif node.__class__.__name__ == ast.FunctionDef.__name__:
+            function = process_func_declaration_node(node)
+            function_declarations.append(function)
+        elif node.__class__.__name__ == ast.Call.__name__:
+            functionCall = process_func_call_node(node)
+            function_calls.append(functionCall)
 
-            function_definitions[node.name] = function_def_args
-        elif (node.__class__.__name__ == ast.Call.__name__):
-            items = []
-            for arg in node.args:
-                # ast.Name
-                items.append(arg.id)
-
-            function_calls.append({node.func.id : items})
-
-    print function_calls
-    print function_definitions
-    print collected_ids
-    print line_numbers
-
-
-
-# exclude = [
-#     # "function",
-#     # "type",
-#     # "list",
-#     # "dict",
-#     # "tuple",
-#     "wrapper_descriptor",
-#     "module",
-#     "method_descriptor",
-#     "member_descriptor",
-#     "instancemethod",
-#     "builtin_function_or_method",
-#     "frame",
-#     "classmethod",
-#     "classmethod_descriptor",
-#     "_Environ",
-#     "MemoryError",
-#     "_Printer",
-#     "_Helper",
-#     "getset_descriptor",
-#     "weakref",
-#     "property",
-#     "cell",
-#     "staticmethod"
-#     ]
-#
-# def dumpObjects():
-#     gc.collect()
-#     oo = globals()
-#     for o in oo:
-#         # print o.type()
-#         # print type(o)
-#
-#         if getattr(o, "__class__", None):
-#             name = o.__class__.__name__
-#             if name == "list":
-#                 print o
+    print "\nFunction name used in calls"
+    for call in function_calls:
+        print call
+    print "\nFunction declaration"
+    for declaration in function_declarations:
+        print declaration
+    print "\n Collected statements"
+    for statement in statements:
+        print statement
