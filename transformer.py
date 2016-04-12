@@ -48,7 +48,21 @@ LINE_NUMBER_KEY = "lineno"
 
 
 def process_assign_node(node):
-    return
+    statement = Statement()
+    for target in node.targets:
+        print("\ttarget.class: " + target.__class__.__name__)
+
+        if target.__class__.__name__ == ast.Name.__name__:
+            statement.destinationName = target.id
+            statement.linePosition = target.lineno
+            statement.indentation = target.col_offset
+        else:
+            if target.__class__.__name__ == ast.Subscript.__name__:
+                statement.destinationName = target.value.id
+                statement.subscriptIndexName = target.slice.value.id
+                statement.linePosition = target.lineno
+                statement.indentation = target.col_offset
+    return statement
 
 
 def process_func_call_node(node):
@@ -97,22 +111,8 @@ if __name__=="__main__":
     for node in ast.walk(syntax_tree):
         print("node.class: " + node.__class__.__name__)
         if node.__class__.__name__ == ast.Assign.__name__:
-            statement = Statement()
-            for target in node.targets:
-                print("\ttarget.class: " + target.__class__.__name__)
-
-                if target.__class__.__name__ == ast.Name.__name__:
-                    statement.destinationName = target.id
-                    statement.linePosition = target.lineno
-                    statement.indentation = target.col_offset
-                    statements.append(statement)
-                else:
-                    if target.__class__.__name__ == ast.Subscript.__name__:
-                        statement.destinationName = target.value.id
-                        statement.subscriptIndexName = target.slice.value.id
-                        statement.linePosition = target.lineno
-                        statement.indentation = target.col_offset
-                        statements.append(statement)
+            statement = process_assign_node(node)
+            statements.append(statement)
         elif node.__class__.__name__ == ast.FunctionDef.__name__:
             function = process_func_declaration_node(node)
             function_declarations.append(function)
