@@ -1,8 +1,11 @@
 import ast
+import os
 from operator import itemgetter
 
 # TODO move classes to separate files
 
+def convert_variable_to_str(var):
+    return str(var)
 
 class SourceCodeInfo:
     function_calls = []
@@ -50,6 +53,7 @@ class VariableAsFunction:
     type = "" # ???
     dependencies = ()
 
+DESTINATION_SOURCE_FILE = "data_collection.txt"
 SOURCE_FILE_NAME = "source.py"
 IDENTIFIER_KEY = "id"
 LINE_NUMBER_KEY = "lineno"
@@ -129,8 +133,8 @@ def apply_data_collectors(source_code_info):
             data_collectors_info.append((argument, function_declaration.startPosition + 1, DEFAULT_INDENT_SIZE))
     data_collectors_info.sort(key=itemgetter(1))
 
-    descriptor_name = "data_collection_descriptor"
-    result_code = descriptor_name + " = open('data_collection.txt', 'w')\n"
+    descriptor_name = "file_descriptor"
+    result_code = descriptor_name + " = open(\"" + DESTINATION_SOURCE_FILE + "\", \"w\")\n"
     line_counter = 1
     code_lines = source_code.codeString.split("\n")
 
@@ -140,12 +144,11 @@ def apply_data_collectors(source_code_info):
 
         for code_line in code_lines:
             while current_data_collector is not None and current_data_collector[1] == line_counter:
-
                 indentation = generate_indentation(current_data_collector[2])
-                file_write_call = descriptor_name + ".write(" + current_data_collector[0] + ")"
+                file_write_call = descriptor_name + ".write(\"" + current_data_collector[0] + "\" + \" = \" + str(" + current_data_collector[0] + ") + \"\\n\")\n"
                 result_code += "\n" + indentation + file_write_call
-
                 current_data_collector = None
+
                 if len(data_collectors_info) > 0:
                     current_data_collector = data_collectors_info[0]
                     data_collectors_info.remove(current_data_collector)
@@ -186,9 +189,16 @@ if __name__=="__main__":
     source_code.statements = statements
     source_code.codeString = source_file_content
 
+    result_source_code_file = "transformed_source_code.txt"
     transformed_source_code = apply_data_collectors(source_code)
+    descriptor = open(result_source_code_file , "w")
+    descriptor.write(transformed_source_code)
+    descriptor.close()
 
-    print "Updated source code"
+    os.remove(DESTINATION_SOURCE_FILE) if os.path.exists(DESTINATION_SOURCE_FILE) else None
+
+    execfile(result_source_code_file)
+
     print transformed_source_code
 
     print "\nFunction name used in calls"
