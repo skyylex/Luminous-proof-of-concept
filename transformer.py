@@ -1,4 +1,15 @@
 import ast
+from operator import itemgetter
+
+# TODO move classes to separate files
+
+
+class SourceCodeInfo:
+    function_calls = []
+    function_declarations = []
+    statements = []
+    codeString = ""
+
 
 class FunctionCall:
     # Semantic
@@ -42,10 +53,12 @@ class VariableAsFunction:
 SOURCE_FILE_NAME = "source.py"
 IDENTIFIER_KEY = "id"
 LINE_NUMBER_KEY = "lineno"
+DEFAULT_INDENT_SIZE = 4
 
 ### Sample of the modification of existing source code
 ### http://stackoverflow.com/questions/768634/parse-a-py-file-read-the-ast-modify-it-then-write-back-the-modified-source-c
 
+# TODO move process functions to separate file
 
 def process_assign_node(node):
     statement = Statement()
@@ -66,18 +79,18 @@ def process_assign_node(node):
 
 
 def process_func_call_node(node):
-    functionCall = FunctionCall()
+    function_call = FunctionCall()
 
     items = []
     for arg in node.args:
         # ast.Name
         items.append(arg.id)
 
-    functionCall.callFuncName = node.func.id
-    functionCall.arguments = items
-    functionCall.linePosition = node.lineno
-    functionCall.indentation = node.col_offset
-    return functionCall
+    function_call.callFuncName = node.func.id
+    function_call.arguments = items
+    function_call.linePosition = node.lineno
+    function_call.indentation = node.col_offset
+    return function_call
 
 
 def process_func_declaration_node(node):
@@ -96,6 +109,48 @@ def process_func_declaration_node(node):
             declaration.endPosition = element.lineno
 
     return declaration
+
+
+def put_data_collector(variable, line_position):
+    print variable + " " + str(line_position)
+
+
+def generate_indentation(size):
+    return " " * size
+
+
+def apply_data_collectors(source_code_info):
+    data_collectors_info = []
+    for statement in source_code.statements:
+        data_collectors_info.append((statement.destinationName, statement.linePosition + 1, statement.indentation))
+
+    for function_declaration in function_declarations:
+        for argument in function_declaration.args:
+            data_collectors_info.append((argument, function_declaration.startPosition + 1, DEFAULT_INDENT_SIZE))
+    data_collectors_info.sort(key=itemgetter(1))
+
+    result_code = ""
+    line_counter = 1
+    code_lines = source_code.codeString.split("\n")
+
+    if len(data_collectors_info) > 0:
+        current_data_collector = data_collectors_info[0]
+        data_collectors_info.remove(current_data_collector)
+
+        for code_line in code_lines:
+            while current_data_collector is not None and current_data_collector[1] == line_counter:
+
+                result_code += "\n" + generate_indentation(current_data_collector[2]) + "[print] " + current_data_collector[0]
+
+                current_data_collector = None
+                if len(data_collectors_info) > 0:
+                    current_data_collector = data_collectors_info[0]
+                    data_collectors_info.remove(current_data_collector)
+
+            result_code = result_code + "\n" + code_line
+            line_counter += 1
+
+    return result_code
 
 
 if __name__=="__main__":
@@ -119,6 +174,17 @@ if __name__=="__main__":
         elif node.__class__.__name__ == ast.Call.__name__:
             functionCall = process_func_call_node(node)
             function_calls.append(functionCall)
+
+    source_code = SourceCodeInfo()
+    source_code.function_calls = function_calls
+    source_code.function_declarations = function_declarations
+    source_code.statements = statements
+    source_code.codeString = source_file_content
+
+    transformed_source_code = apply_data_collectors(source_code)
+
+    print "Updated source code"
+    print transformed_source_code
 
     print "\nFunction name used in calls"
     for call in function_calls:
