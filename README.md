@@ -10,7 +10,7 @@ Learning is the process which every software engineer should be familiar with. U
 *To reduce complexity of the learning algrorithms.*
 
 The way of solving this problem is in presentation of the ideas that lay inside algorithms.
-One of the approached to achieve that is to show what algorithm actually does (instead of how it's actually implemented). In this case we interact with common concept (no math analysis, no difficulties with specific programming language).
+One of the approaches is to show what algorithm actually does (instead of how it's actually implemented). In this case we interact with common concept (no math analysis, no difficulties with specific programming language).
 
 ***The main goal is to build a visualiser for algorithm.***
 
