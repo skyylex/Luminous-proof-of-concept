@@ -129,7 +129,8 @@ def apply_data_collectors(source_code_info):
             data_collectors_info.append((argument, function_declaration.startPosition + 1, DEFAULT_INDENT_SIZE))
     data_collectors_info.sort(key=itemgetter(1))
 
-    result_code = ""
+    descriptor_name = "data_collection_descriptor"
+    result_code = descriptor_name + " = open('data_collection.txt', 'w')\n"
     line_counter = 1
     code_lines = source_code.codeString.split("\n")
 
@@ -140,7 +141,9 @@ def apply_data_collectors(source_code_info):
         for code_line in code_lines:
             while current_data_collector is not None and current_data_collector[1] == line_counter:
 
-                result_code += "\n" + generate_indentation(current_data_collector[2]) + "[print] " + current_data_collector[0]
+                indentation = generate_indentation(current_data_collector[2])
+                file_write_call = descriptor_name + ".write(" + current_data_collector[0] + ")"
+                result_code += "\n" + indentation + file_write_call
 
                 current_data_collector = None
                 if len(data_collectors_info) > 0:
@@ -149,6 +152,8 @@ def apply_data_collectors(source_code_info):
 
             result_code = result_code + "\n" + code_line
             line_counter += 1
+
+    result_code = result_code + "\n\n" + descriptor_name + ".close()"
 
     return result_code
 
