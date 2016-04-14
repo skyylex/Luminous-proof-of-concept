@@ -165,8 +165,7 @@ def generate_data_collector_call(data_collector_call, descriptor_name):
 def apply_data_collectors(source_code_info):
     data_collectors_info = build_data_collectors(source_code_info)
 
-    descriptor_name = "file_descriptor"
-    result_code = descriptor_name + " = open(\"" + settings.COLLECTED_DATA_FILE + "\", \"w\")\n"
+    result_code = settings.FILE_DESCRIPTOR_NAME + " = open(\"" + settings.COLLECTED_DATA_FILE + "\", \"w\")\n"
     line_counter = 1
     code_lines = source_code.codeString.split("\n")
 
@@ -176,7 +175,7 @@ def apply_data_collectors(source_code_info):
 
         for code_line in code_lines:
             while current_data_collector is not None and current_data_collector.line_position == line_counter:
-                result_code += "\n" + generate_data_collector_call(current_data_collector, descriptor_name)
+                result_code += "\n" + generate_data_collector_call(current_data_collector, settings.FILE_DESCRIPTOR_NAME)
                 current_data_collector = None
 
                 if len(data_collectors_info) > 0:
@@ -186,7 +185,7 @@ def apply_data_collectors(source_code_info):
             result_code = result_code + "\n" + code_line
             line_counter += 1
 
-    result_code = result_code + "\n\n" + descriptor_name + ".close()"
+    result_code = result_code + "\n\n" + settings.FILE_DESCRIPTOR_NAME + ".close()"
 
     return result_code
 
@@ -218,7 +217,6 @@ if __name__=="__main__":
     source_code.function_declarations = function_declarations
     source_code.statements = statements
     source_code.codeString = source_file_content
-
 
     transformed_source_code = apply_data_collectors(source_code)
     descriptor = open(settings.TRANSFORMED_SOURCE_FILE, "w")

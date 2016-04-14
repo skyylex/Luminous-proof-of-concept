@@ -1,6 +1,7 @@
 META_MARK_VARCHANGE = "[var_change]"
 META_MARK_STACKTRACE = "[stack_trace]"
 
+FILE_DESCRIPTOR_NAME = "file_descriptor19897865"
 TRANSFORMED_SOURCE_FILE = "transformed_source_code.txt"
 COLLECTED_DATA_FILE = "data_collection.txt"
 SOURCE_FILE_NAME = "source.py"
