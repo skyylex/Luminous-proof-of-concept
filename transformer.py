@@ -1,11 +1,16 @@
 import ast
 import os
-from operator import itemgetter
+from operator import attrgetter
 
 # TODO move classes to separate files
 
-def convert_variable_to_str(var):
-    return str(var)
+
+class DataCollectorCall:
+    collected_variable = ""
+    indentation = 0
+    line_position = 0
+    stacktrace_observable = False
+
 
 class SourceCodeInfo:
     function_calls = []
@@ -123,15 +128,36 @@ def generate_indentation(size):
     return " " * size
 
 
-def apply_data_collectors(source_code_info):
+def build_data_collectors(source_code_info):
     data_collectors_info = []
     for statement in source_code.statements:
-        data_collectors_info.append((statement.destinationName, statement.linePosition + 1, statement.indentation))
+        data_collector = DataCollectorCall()
+        data_collector.collected_variable = statement.destinationName
+        data_collector.line_position = statement.linePosition + 1
+        data_collector.indentation = statement.indentation
+        data_collectors_info.append(data_collector)
 
     for function_declaration in function_declarations:
         for argument in function_declaration.args:
-            data_collectors_info.append((argument, function_declaration.startPosition + 1, DEFAULT_INDENT_SIZE))
-    data_collectors_info.sort(key=itemgetter(1))
+            data_collector = DataCollectorCall()
+            data_collector.collected_variable = argument
+            data_collector.line_position = function_declaration.startPosition + 1
+            data_collector.indentation = DEFAULT_INDENT_SIZE
+            data_collector.stacktrace_observable = True
+            data_collectors_info.append(data_collector)
+    data_collectors_info.sort(key=attrgetter('line_position'))
+    return data_collectors_info
+
+
+def generate_data_collector_call(data_collector_call, descriptor_name):
+    indentation = generate_indentation(data_collector_call.indentation)
+    var_name = data_collector_call.collected_variable
+    file_write_call = descriptor_name + ".write(\"" + var_name + "\" + \" = \" + str(" + var_name + ") + \"\\n\")\n"
+    return indentation + file_write_call
+
+
+def apply_data_collectors(source_code_info):
+    data_collectors_info = build_data_collectors(source_code_info)
 
     descriptor_name = "file_descriptor"
     result_code = descriptor_name + " = open(\"" + DESTINATION_SOURCE_FILE + "\", \"w\")\n"
@@ -143,10 +169,9 @@ def apply_data_collectors(source_code_info):
         data_collectors_info.remove(current_data_collector)
 
         for code_line in code_lines:
-            while current_data_collector is not None and current_data_collector[1] == line_counter:
-                indentation = generate_indentation(current_data_collector[2])
-                file_write_call = descriptor_name + ".write(\"" + current_data_collector[0] + "\" + \" = \" + str(" + current_data_collector[0] + ") + \"\\n\")\n"
-                result_code += "\n" + indentation + file_write_call
+            while current_data_collector is not None and current_data_collector.line_position == line_counter:
+                data_collector_call_string = generate_data_collector_call(current_data_collector, descriptor_name)
+                result_code += "\n" + data_collector_call_string
                 current_data_collector = None
 
                 if len(data_collectors_info) > 0:
