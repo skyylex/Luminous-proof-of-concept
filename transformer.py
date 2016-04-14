@@ -1,5 +1,6 @@
 import ast
 import os
+import traceback
 from operator import attrgetter
 
 # TODO move classes to separate files
@@ -150,10 +151,18 @@ def build_data_collectors(source_code_info):
 
 
 def generate_data_collector_call(data_collector_call, descriptor_name):
+    result_write_call = ""
+
     indentation = generate_indentation(data_collector_call.indentation)
+    if data_collector_call.stacktrace_observable:
+        stacktrace_snapshot_call =  indentation + descriptor_name + ".write(\"[stack_trace] \" + str(traceback.extract_stack()) + \"\\n\")\n"
+        result_write_call += stacktrace_snapshot_call
+
     var_name = data_collector_call.collected_variable
-    file_write_call = descriptor_name + ".write(\"" + var_name + "\" + \" = \" + str(" + var_name + ") + \"\\n\")\n"
-    return indentation + file_write_call
+    var_change_write_call = indentation + descriptor_name + ".write(\"[var_change] " + var_name + "\" + \" = \" + str(" + var_name + ") + \"\\n\")\n"
+
+    result_write_call += var_change_write_call
+    return result_write_call
 
 
 def apply_data_collectors(source_code_info):
@@ -170,8 +179,7 @@ def apply_data_collectors(source_code_info):
 
         for code_line in code_lines:
             while current_data_collector is not None and current_data_collector.line_position == line_counter:
-                data_collector_call_string = generate_data_collector_call(current_data_collector, descriptor_name)
-                result_code += "\n" + data_collector_call_string
+                result_code += "\n" + generate_data_collector_call(current_data_collector, descriptor_name)
                 current_data_collector = None
 
                 if len(data_collectors_info) > 0:
