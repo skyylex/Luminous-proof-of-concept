@@ -3,6 +3,9 @@ import os
 import traceback
 from operator import attrgetter
 
+import settings
+from data_analyser import analyse_collected_data
+
 # TODO move classes to separate files
 
 
@@ -58,12 +61,6 @@ class VariableAsFunction:
     varName = ""
     type = "" # ???
     dependencies = ()
-
-DESTINATION_SOURCE_FILE = "data_collection.txt"
-SOURCE_FILE_NAME = "source.py"
-IDENTIFIER_KEY = "id"
-LINE_NUMBER_KEY = "lineno"
-DEFAULT_INDENT_SIZE = 4
 
 ### Sample of the modification of existing source code
 ### http://stackoverflow.com/questions/768634/parse-a-py-file-read-the-ast-modify-it-then-write-back-the-modified-source-c
@@ -143,7 +140,7 @@ def build_data_collectors(source_code_info):
             data_collector = DataCollectorCall()
             data_collector.collected_variable = argument
             data_collector.line_position = function_declaration.startPosition + 1
-            data_collector.indentation = DEFAULT_INDENT_SIZE
+            data_collector.indentation = settings.DEFAULT_INDENT_SIZE
             data_collector.stacktrace_observable = True
             data_collectors_info.append(data_collector)
     data_collectors_info.sort(key=attrgetter('line_position'))
@@ -155,11 +152,11 @@ def generate_data_collector_call(data_collector_call, descriptor_name):
 
     indentation = generate_indentation(data_collector_call.indentation)
     if data_collector_call.stacktrace_observable:
-        stacktrace_snapshot_call =  indentation + descriptor_name + ".write(\"[stack_trace] \" + str(traceback.extract_stack()) + \"\\n\")\n"
+        stacktrace_snapshot_call = indentation + descriptor_name + ".write(\"" + settings.META_MARK_STACKTRACE + "\" + str(traceback.extract_stack()) + \"\\n\")\n"
         result_write_call += stacktrace_snapshot_call
 
     var_name = data_collector_call.collected_variable
-    var_change_write_call = indentation + descriptor_name + ".write(\"[var_change] " + var_name + "\" + \" = \" + str(" + var_name + ") + \"\\n\")\n"
+    var_change_write_call = indentation + descriptor_name + ".write(\"" + settings.META_MARK_VARCHANGE + " " + var_name + "\" + \" =\" + str(" + var_name + ") + \"\\n\")\n"
 
     result_write_call += var_change_write_call
     return result_write_call
@@ -169,7 +166,7 @@ def apply_data_collectors(source_code_info):
     data_collectors_info = build_data_collectors(source_code_info)
 
     descriptor_name = "file_descriptor"
-    result_code = descriptor_name + " = open(\"" + DESTINATION_SOURCE_FILE + "\", \"w\")\n"
+    result_code = descriptor_name + " = open(\"" + settings.COLLECTED_DATA_FILE + "\", \"w\")\n"
     line_counter = 1
     code_lines = source_code.codeString.split("\n")
 
@@ -195,7 +192,7 @@ def apply_data_collectors(source_code_info):
 
 
 if __name__=="__main__":
-    source_file = open(SOURCE_FILE_NAME)
+    source_file = open(settings.SOURCE_FILE_NAME)
     source_file_content = source_file.read()
     syntax_tree = ast.parse(source_file_content)
 
@@ -222,15 +219,16 @@ if __name__=="__main__":
     source_code.statements = statements
     source_code.codeString = source_file_content
 
-    result_source_code_file = "transformed_source_code.txt"
+
     transformed_source_code = apply_data_collectors(source_code)
-    descriptor = open(result_source_code_file , "w")
+    descriptor = open(settings.TRANSFORMED_SOURCE_FILE, "w")
     descriptor.write(transformed_source_code)
     descriptor.close()
 
-    os.remove(DESTINATION_SOURCE_FILE) if os.path.exists(DESTINATION_SOURCE_FILE) else None
+    os.remove(settings.COLLECTED_DATA_FILE) if os.path.exists(settings.COLLECTED_DATA_FILE) else None
+    execfile(settings.TRANSFORMED_SOURCE_FILE)
 
-    execfile(result_source_code_file)
+    analyse_collected_data(settings.COLLECTED_DATA_FILE)
 
     print transformed_source_code
 
