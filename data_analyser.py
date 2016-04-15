@@ -6,9 +6,10 @@ STACK_TRACE_ITEM_POSITION_FUNCTION_CALL = 3
 
 
 class StackTraceItem:
-    line_number_in_transformed_code = 0
-    # TODO: replace with function name and arguments
-    function_call = ""
+    def __init__(self):
+        self.line_number_in_transformed_code = 0
+        # TODO: replace with function name and arguments
+        self.function_call = ""
 
     def __repr__(self):
         return self.__str__()
@@ -16,13 +17,15 @@ class StackTraceItem:
     def __str__(self):
         return "[StackTraceItem] line_number_in_transformed_code: " + str(self.line_number_in_transformed_code) + ", call: " + self.function_call
 
+
 class DataLine:
     # TODO: replace with enum
-    data_type = None
-    var_name = None
-    data_value = None
-    execution_order_number = 0
-    stacktrace_items = ()
+    def __init__(self):
+        self.data_type = None
+        self.var_name = None
+        self.data_value = None
+        self.execution_order_number = 0
+        self.stacktrace_items = []
 
     def __str__(self):
         stacktrace_string = ""
@@ -33,34 +36,33 @@ class DataLine:
     def __repr__(self):
         return self.__str__()
 
+
 def analyse_collected_data(generated_data_filename):
     collected_data = open(generated_data_filename, "r")
-    source_file_content = collected_data.read()
 
     execution_order_number = 1
     parsed_data_lines = []
-    for line in source_file_content.split("\n"):
+    for line in collected_data:
         data_line = parse_data_line(line, execution_order_number)
         parsed_data_lines.append(data_line)
         execution_order_number += 1
 
     for data_line in parsed_data_lines:
-        print "\n" + data_line.__str__()
-
+        print "\n" + str(data_line)
 
 
 def parse_data_line(line, execution_order_number):
     data_line = DataLine()
-    if line.startswith(settings.META_MARK_VARCHANGE, 0):
+    if line.startswith(settings.META_MARK_VARCHANGE):
         filtered_data_string = line.replace(settings.META_MARK_VARCHANGE, "")
         splitter_position = filtered_data_string.find("=")
-        var_name = filtered_data_string[0:(splitter_position - 1)]
-        filtered_data_string = filtered_data_string[(splitter_position + 1):]
+        var_name = filtered_data_string[:splitter_position - 1]
+        filtered_data_string = filtered_data_string[splitter_position + 1:]
 
         data_line.data_type = settings.META_MARK_VARCHANGE
         data_line.var_name = var_name
         data_line.data_value = literal_eval(filtered_data_string)
-    elif line.startswith(settings.META_MARK_STACKTRACE, 0):
+    elif line.startswith(settings.META_MARK_STACKTRACE):
         filtered_data_string = line.replace(settings.META_MARK_STACKTRACE, "")
 
         data_line.data_type = settings.META_MARK_STACKTRACE
@@ -73,7 +75,7 @@ def parse_data_line(line, execution_order_number):
 def process_stacktrace_info(stack_trace):
     stack_trace_items = []
     for stack_trace_item in stack_trace:
-        if len(stack_trace_item) > 0:
+        if stack_trace_item:
             if stack_trace_item[0] == settings.TRANSFORMED_SOURCE_FILE:
                 stack_trace_item_structure = StackTraceItem()
 
