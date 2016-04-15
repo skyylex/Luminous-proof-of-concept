@@ -5,6 +5,9 @@ __pycache__/
 # Text
 *.txt
 
+# IDE files
+.idea/*
+
 # C extensions
 *.so
 
