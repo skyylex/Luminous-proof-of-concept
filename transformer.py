@@ -203,7 +203,9 @@ if __name__ == "__main__":
 
     for node in ast.walk(syntax_tree):
         print "node.class: {}".format(node.__class__.__name__)
-        if node.__class__.__name__ == ast.Assign.__name__:
+        # TODO: investigate replacement manual checking node.__attributes to usage of ast.NodeVisitor
+
+        if node.__class__.__name__ == ast.Assign.__name__ or node.__class__.__name__ == ast.AugAssign.__name__:
             statement = process_assign_node(node)
             statements.append(statement)
         elif node.__class__.__name__ == ast.FunctionDef.__name__:
