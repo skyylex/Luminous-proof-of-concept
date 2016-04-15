@@ -62,10 +62,10 @@ def parse_data_line(line, execution_order_number):
         data_line.data_type = settings.META_MARK_VARCHANGE
         data_line.var_name = var_name
         data_line.data_value = literal_eval(filtered_data_string)
-    elif line.startswith(settings.META_MARK_STACKTRACE):
-        filtered_data_string = line.replace(settings.META_MARK_STACKTRACE, "")
+    elif line.startswith(settings.META_MARK_FUNC_CALL_STACKTRACE):
+        filtered_data_string = line.replace(settings.META_MARK_FUNC_CALL_STACKTRACE, "")
 
-        data_line.data_type = settings.META_MARK_STACKTRACE
+        data_line.data_type = settings.META_MARK_FUNC_CALL_STACKTRACE
         data_line.data_value = literal_eval(filtered_data_string)
         data_line.stacktrace_items = process_stacktrace_info(data_line.data_value)
     data_line.execution_order_number = execution_order_number

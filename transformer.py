@@ -10,19 +10,21 @@ from data_analyser import analyse_collected_data
 
 
 class DataCollectorCall(object):
-    def __init__(self, var_name="", indentation=0, line_position=0, need_stacktrace=False):
+    def __init__(self, var_name="", indentation=0, line_position=0, need_stacktrace=False, is_return_operator=False):
         self.collected_variable = var_name
         self.indentation = indentation
         self.line_position = line_position
         self.need_stacktrace = need_stacktrace
+        self.is_return_operator = is_return_operator
 
 
 class SourceCodeInfo(object):
-    def __init__(self, function_calls=[], function_declarations=[], statements=[], source_code_string=""):
+    def __init__(self, function_calls=[], function_declarations=[], statements=[], source_code_string="", return_calls=[]):
         self.function_calls = function_calls
         self.function_declarations = function_declarations
         self.statements = statements
         self.source_code_string = source_code_string
+        self.return_calls = return_calls
 
 
 class FunctionCall(object):
@@ -46,6 +48,12 @@ class FunctionDeclaration(object):
 
     def __str__(self):
         return self.name + " " + str(self.arguments) + " " + str(self.start_position) + " " + str(self.end_position)
+
+
+class ReturnCall(object):
+    def __init__(self, line_position = 0, indentation = 0):
+        self.line_position = line_position
+        self.indentation = indentation
 
 
 class Statement(object):
@@ -73,20 +81,29 @@ class VariableAsFunction(object):
 
 def process_assign_node(node):
     statement = Statement()
-    for target in node.targets:
-        print "\ttarget.class: " + target.__class__.__name__
 
-        if target.__class__.__name__ == ast.Name.__name__:
-            statement.destination_var_name = target.id
-            statement.line_position = target.lineno
-            statement.indentation = target.col_offset
-        else:
-            if target.__class__.__name__ == ast.Subscript.__name__:
-                statement.destination_var_name = target.value.id
-                statement.subscript_key = target.slice.value.id
+    if node.__class__.__name__ == ast.AugAssign.__name__:
+        statement.destination_var_name = node.target.id
+        statement.line_position = node.target.lineno
+        statement.indentation = node.target.col_offset
+    else:
+        for target in node.targets:
+            if target.__class__.__name__ == ast.Name.__name__:
+                statement.destination_var_name = target.id
                 statement.line_position = target.lineno
                 statement.indentation = target.col_offset
+            else:
+                if target.__class__.__name__ == ast.Subscript.__name__:
+                    statement.destination_var_name = target.value.id
+                    statement.subscript_key = target.slice.value.id
+                    statement.line_position = target.lineno
+                    statement.indentation = target.col_offset
     return statement
+
+
+def process_return_call_node(node):
+    return_call = ReturnCall(line_position=node.lineno, indentation=node.col_offset)
+    return return_call
 
 
 def process_func_call_node(node):
@@ -129,37 +146,59 @@ def put_data_collector(variable, line_position):
 def generate_indentation(size):
     return " " * size
 
-
+###
 def build_data_collectors(source_code_info):
-    data_collectors_info = []
+    """
+    Generate structures with arguments for generating file write capturing calls
+    """
+
+    file_write_calls = []
     for statement in source_code_info.statements:
         line_position = statement.line_position + 1
         data_collector = DataCollectorCall(statement.destination_var_name, statement.indentation, line_position)
-        data_collectors_info.append(data_collector)
+        file_write_calls.append(data_collector)
 
     for function_declaration in source_code_info.function_declarations:
         for argument in function_declaration.args:
             line_position = function_declaration.start_position + 1
             data_collector = DataCollectorCall(argument, settings.DEFAULT_INDENT_SIZE, line_position, True)
-            data_collectors_info.append(data_collector)
-    data_collectors_info.sort(key=attrgetter('line_position'))
-    return data_collectors_info
+            file_write_calls.append(data_collector)
+
+    for return_call in source_code_info.return_calls:
+        data_collector = DataCollectorCall(indentation=return_call.indentation,
+                                           line_position=return_call.line_position - 1,
+                                           is_return_operator=True,
+                                           need_stacktrace=True)
+        file_write_calls.append(data_collector)
+
+    file_write_calls.sort(key=attrgetter('line_position'))
+    return file_write_calls
 
 
 def generate_data_collector_call(data_collector_call, descriptor_name):
     result_write_call = ""
 
     indentation = generate_indentation(data_collector_call.indentation)
+
     if data_collector_call.need_stacktrace:
-        file_write_call_string = "{}.write(\"{}\" + str(traceback.extract_stack()) + \"\\n\")\n".format(descriptor_name, settings.META_MARK_STACKTRACE)
+        stacktrace_type = settings.META_MARK_FUNC_CALL_STACKTRACE
+        if data_collector_call.is_return_operator == True:
+            stacktrace_type = settings.META_MARK_RETURN_STACKTRACE
+
+        file_write_call_string = "{}.write(\"{}\" + str(traceback.extract_stack()) + \"\\n\")\n".format(descriptor_name,
+                                                                                                        stacktrace_type)
         stacktrace_snapshot_call = indentation + file_write_call_string
         result_write_call += stacktrace_snapshot_call
 
-    var_name = data_collector_call.collected_variable
-    file_write_call_string = "{}.write(\"{} \" + \"{} =\" + str({}) + \"\\n\")\n".format(descriptor_name, settings.META_MARK_VARCHANGE, var_name, var_name)
-    var_change_write_call = indentation + file_write_call_string
+    if data_collector_call.is_return_operator == False:
+        var_name = data_collector_call.collected_variable
+        file_write_call_string = "{}.write(\"{} \" + \"{} =\" + str({}) + \"\\n\")\n".format(descriptor_name,
+                                                                                             settings.META_MARK_VARCHANGE,
+                                                                                             var_name, var_name)
+        var_change_write_call = indentation + file_write_call_string
 
-    result_write_call += var_change_write_call
+        result_write_call += var_change_write_call
+
     return result_write_call
 
 
@@ -178,7 +217,6 @@ def apply_data_collectors(source_code_info):
             while current_data_collector is not None and current_data_collector.line_position == line_counter:
                 result_code += "\n" + generate_data_collector_call(current_data_collector, settings.FILE_DESCRIPTOR_NAME)
                 current_data_collector = None
-
                 if len(data_collectors_info) > 0:
                     current_data_collector = data_collectors_info[0]
                     data_collectors_info.remove(current_data_collector)
@@ -200,9 +238,13 @@ if __name__ == "__main__":
     function_declarations = []
     function_calls = []
     statements = []
+    return_calls = []
+
+    collected_nodes_names = []
 
     for node in ast.walk(syntax_tree):
-        print "node.class: {}".format(node.__class__.__name__)
+        collected_nodes_names.append(node.__class__.__name__)
+
         # TODO: investigate replacement manual checking node.__attributes to usage of ast.NodeVisitor
 
         if node.__class__.__name__ == ast.Assign.__name__ or node.__class__.__name__ == ast.AugAssign.__name__:
@@ -212,11 +254,14 @@ if __name__ == "__main__":
             function = process_func_declaration_node(node)
             function_declarations.append(function)
         elif node.__class__.__name__ == ast.Call.__name__:
-            functionCall = process_func_call_node(node)
-            function_calls.append(functionCall)
+            function_call = process_func_call_node(node)
+            function_calls.append(function_call)
+        elif node.__class__.__name__ == ast.Return.__name__:
+            return_call = process_return_call_node(node)
+            return_calls.append(return_call)
 
     with open(settings.TRANSFORMED_SOURCE_FILE, "w") as transformed_source_file:
-        source_code = SourceCodeInfo(function_calls, function_declarations, statements, source_file_content)
+        source_code = SourceCodeInfo(function_calls, function_declarations, statements, source_file_content, return_calls)
         transformed_source_code = apply_data_collectors(source_code)
         transformed_source_file.write(transformed_source_code)
 

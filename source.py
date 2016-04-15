@@ -1,7 +1,6 @@
 a_list = [54, 26, 93, 17, 77, 31, 44, 55, 20]
 
 def merge_sort(a):
-    print("Splitting ", a)
     if len(a) > 1:
         mid = len(a) // 2
         left_half = a[:mid]
@@ -31,6 +30,7 @@ def merge_sort(a):
             a[k] = right_half[j]
             j += 1
             k += 1
-    print("Merging ", a)
+
+    return
 
 merge_sort(a_list)
