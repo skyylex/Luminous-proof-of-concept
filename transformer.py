@@ -82,24 +82,55 @@ class VariableAsFunction(object):
 def process_assign_node(node):
     statement = Statement()
 
-    if node.__class__.__name__ == ast.AugAssign.__name__:
+    if isinstance(node, ast.AugAssign):
         statement.destination_var_name = node.target.id
         statement.line_position = node.target.lineno
         statement.indentation = node.target.col_offset
     else:
         for target in node.targets:
-            if target.__class__.__name__ == ast.Name.__name__:
+            if isinstance(target, ast.Subscript):
                 statement.destination_var_name = target.id
                 statement.line_position = target.lineno
                 statement.indentation = target.col_offset
             else:
-                if target.__class__.__name__ == ast.Subscript.__name__:
+                if isinstance(target, ast.Subscript):
                     statement.destination_var_name = target.value.id
                     statement.subscript_key = target.slice.value.id
                     statement.line_position = target.lineno
                     statement.indentation = target.col_offset
+
+    if isinstance(node.value, ast.List):
+        for list_item in node.value.elts:
+            if is_value_type(list_item):
+                print "Value type"
+            else:
+                print "Other type"
+    elif isinstance(node.value, ast.BinOp):
+        print "Binary operation"
+        process_operand(node.value.left)
+        process_operand(node.value.right)
+    elif isinstance(node.value, ast.Subscript):
+        print "Subscript assign "
+    elif is_value_type(node.value):
+        print ""
+    else:
+        print "Unhandled assign type"
+
     return statement
 
+
+def process_operand(operand):
+    if isinstance(operand, ast.Num):
+        print "Operand is a number."
+    elif isinstance(operand, ast.Call):
+        print "Operand is function call."
+    else:
+        print "Unhandled operand's processing."
+
+
+def is_value_type(item):
+    # TODO: extend with
+    return isinstance(item, ast.Num)
 
 def process_return_call_node(node):
     return_call = ReturnCall(line_position=node.lineno, indentation=node.col_offset)
@@ -146,10 +177,10 @@ def put_data_collector(variable, line_position):
 def generate_indentation(size):
     return " " * size
 
-###
+
 def build_data_collectors(source_code_info):
     """
-    Generate structures with arguments for generating file write capturing calls
+    Build structures with arguments for generating file write capturing calls
     """
 
     file_write_calls = []
@@ -247,16 +278,16 @@ if __name__ == "__main__":
 
         # TODO: investigate replacement manual checking node.__attributes to usage of ast.NodeVisitor
 
-        if node.__class__.__name__ == ast.Assign.__name__ or node.__class__.__name__ == ast.AugAssign.__name__:
+        if isinstance(node, ast.Assign) or isinstance(node, ast.AugAssign):
             statement = process_assign_node(node)
             statements.append(statement)
-        elif node.__class__.__name__ == ast.FunctionDef.__name__:
+        elif isinstance(node, ast.FunctionDef):
             function = process_func_declaration_node(node)
             function_declarations.append(function)
-        elif node.__class__.__name__ == ast.Call.__name__:
+        elif isinstance(node, ast.Call):
             function_call = process_func_call_node(node)
             function_calls.append(function_call)
-        elif node.__class__.__name__ == ast.Return.__name__:
+        elif isinstance(node, ast.Return):
             return_call = process_return_call_node(node)
             return_calls.append(return_call)
 
