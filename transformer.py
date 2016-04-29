@@ -1,3 +1,6 @@
+#!/usr/bin/python
+
+import command_line
 import ast
 import os
 import traceback
@@ -259,57 +262,63 @@ def apply_data_collectors(source_code_info):
 
     return result_code
 
+
 # TODO: investigate move to def main(). The problem is that "file_descriptor" in the transformed code becomes invisible in some places.
 if __name__ == "__main__":
-    with open(settings.SOURCE_FILE_NAME) as source_file:
-        source_file_content = source_file.read()
+    settings = command_line.process_command_line_arguments()
 
-    syntax_tree = ast.parse(source_file_content)
+    if settings.argument_error is not None:
+        print "Error occured during command-line argument processing: " + str(settings.argument_error)
+    else:
+        with open(settings.source_file) as source_file:
+            source_file_content = source_file.read()
 
-    function_declarations = []
-    function_calls = []
-    statements = []
-    return_calls = []
+        syntax_tree = ast.parse(source_file_content)
 
-    collected_nodes_names = []
+        function_declarations = []
+        function_calls = []
+        statements = []
+        return_calls = []
 
-    for node in ast.walk(syntax_tree):
-        collected_nodes_names.append(node.__class__.__name__)
+        collected_nodes_names = []
 
-        # TODO: investigate replacement manual checking node.__attributes to usage of ast.NodeVisitor
+        for node in ast.walk(syntax_tree):
+            collected_nodes_names.append(node.__class__.__name__)
 
-        if isinstance(node, ast.Assign) or isinstance(node, ast.AugAssign):
-            statement = process_assign_node(node)
-            statements.append(statement)
-        elif isinstance(node, ast.FunctionDef):
-            function = process_func_declaration_node(node)
-            function_declarations.append(function)
-        elif isinstance(node, ast.Call):
-            function_call = process_func_call_node(node)
-            function_calls.append(function_call)
-        elif isinstance(node, ast.Return):
-            return_call = process_return_call_node(node)
-            return_calls.append(return_call)
+            # TODO: investigate replacement manual checking node.__attributes to usage of ast.NodeVisitor
 
-    with open(settings.TRANSFORMED_SOURCE_FILE, "w") as transformed_source_file:
-        source_code = SourceCodeInfo(function_calls, function_declarations, statements, source_file_content, return_calls)
-        transformed_source_code = apply_data_collectors(source_code)
-        transformed_source_file.write(transformed_source_code)
+            if isinstance(node, ast.Assign) or isinstance(node, ast.AugAssign):
+                statement = process_assign_node(node)
+                statements.append(statement)
+            elif isinstance(node, ast.FunctionDef):
+                function = process_func_declaration_node(node)
+                function_declarations.append(function)
+            elif isinstance(node, ast.Call):
+                function_call = process_func_call_node(node)
+                function_calls.append(function_call)
+            elif isinstance(node, ast.Return):
+                return_call = process_return_call_node(node)
+                return_calls.append(return_call)
 
-    if os.path.exists(settings.COLLECTED_DATA_FILE):
-        os.remove(settings.COLLECTED_DATA_FILE)
-    execfile(settings.TRANSFORMED_SOURCE_FILE)
+        with open(settings.TRANSFORMED_SOURCE_FILE, "w") as transformed_source_file:
+            source_code = SourceCodeInfo(function_calls, function_declarations, statements, source_file_content, return_calls)
+            transformed_source_code = apply_data_collectors(source_code)
+            transformed_source_file.write(transformed_source_code)
 
-    analyse_collected_data(settings.COLLECTED_DATA_FILE)
+        if os.path.exists(settings.COLLECTED_DATA_FILE):
+            os.remove(settings.COLLECTED_DATA_FILE)
+        execfile(settings.TRANSFORMED_SOURCE_FILE)
 
-    print transformed_source_code
+        analyse_collected_data(settings.COLLECTED_DATA_FILE)
 
-    print "\nFunction name used in calls"
-    for call in function_calls:
-        print call
-    print "\nFunction declaration"
-    for declaration in function_declarations:
-        print declaration
-    print "\n Collected statements"
-    for statement in statements:
-        print statement
+        print transformed_source_code
+
+        print "\nFunction name used in calls"
+        for call in function_calls:
+            print call
+        print "\nFunction declaration"
+        for declaration in function_declarations:
+            print declaration
+        print "\n Collected statements"
+        for statement in statements:
+            print statement
