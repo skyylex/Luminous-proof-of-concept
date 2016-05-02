@@ -1,5 +1,7 @@
 # Luminous-proof-of-concept
-Proof of concept for the Luminous algorithm's interpreter and renderer
+#### [Investigation phase]
+
+Proof of concept for the algorithm's interpreter and visualiser
 
 ### Idea
 
@@ -16,6 +18,15 @@ One of the approaches is to show what algorithm actually does (instead of how it
 
 At this moment (2016) there are no widely used best practices for such kind of task. In 70th there were flowcharts, unfortunately they have no a lot of effort. 
 
+### Input
+
+- **\*.py** - source file with implemented algorithm in Python.
+
+
+### Output
+
+- **transformed_source_code.out**: transformed source code(received as input) with additional file write calls.
+- **data_collection.out**: data gathered during the evalution of the *transformed_source_code.out* source file
 
 ### Usage
 
@@ -38,20 +49,5 @@ There are some examples lay out in the **./samples/** folder. Try them out using
 Make sure that `luminous.py` file has permissions to execute, otherwise use following command:
 
 `chmod +x luminous.py`
-
-### Technical details
-
-##### Several components:
-- *Parser.*
-- *Interpreter*
-- *Visualiser*
-
-##### Source analyzer
-
-- Task 1. Source analyzer could build tree of variable's dependencies of each other.
-- Task 2. Recognizing variable's roles in the output result calculation.
-
-##### Data flow.
-- Task 1. Data snapshots diff find out for different types of common data types.
 
 
