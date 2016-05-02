@@ -23,7 +23,7 @@ At this moment (2016) there are no widely used best practices for such kind of t
 
  Run from command-line interface:
 
-`transformer.py --source-file SOURCE_FILENAME`
+`main.py --source-file SOURCE_FILENAME`
 
 where SOURCE_FILENAME - file with algorithm implemented using Python 2.7
 
@@ -31,7 +31,7 @@ where SOURCE_FILENAME - file with algorithm implemented using Python 2.7
 
 There are some examples lay out in the **./samples/** folder. Try them out using next command:
 
-`transformer.py --source-file ./samples/merge_sort.py`
+`main.py --source-file ./samples/merge_sort.py`
 
 ### Technical details
 
