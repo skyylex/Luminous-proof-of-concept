@@ -21,9 +21,9 @@ At this moment (2016) there are no widely used best practices for such kind of t
 
 ##### Common
 
- Run from command-line interface:
+Run from command-line interface:
 
-`main.py --source-file SOURCE_FILENAME`
+`./luminous.py --source-file SOURCE_FILENAME`
 
 where SOURCE_FILENAME - file with algorithm implemented using Python 2.7
 
@@ -31,13 +31,19 @@ where SOURCE_FILENAME - file with algorithm implemented using Python 2.7
 
 There are some examples lay out in the **./samples/** folder. Try them out using next command:
 
-`main.py --source-file ./samples/merge_sort.py`
+`./luminous.py --source-file ./samples/merge_sort.py`
+
+##### Troubleshooting
+
+Make sure that `luminous.py` file has permissions to execute, otherwise use following command:
+
+`chmod +x luminous.py`
 
 ### Technical details
 
 ##### Several components:
 - *Parser.*
-- *Interpretator*
+- *Interpreter*
 - *Visualiser*
 
 ##### Source analyzer
@@ -46,6 +52,6 @@ There are some examples lay out in the **./samples/** folder. Try them out using
 - Task 2. Recognizing variable's roles in the output result calculation.
 
 ##### Data flow.
-- Task 1. Data snapshots diff findout for different types of common data types.
+- Task 1. Data snapshots diff find out for different types of common data types.
 
 
