@@ -1,6 +1,5 @@
 import settings
 from ast import literal_eval
-
 STACK_TRACE_ITEM_POSITION_LINE_NUMBER = 1
 STACK_TRACE_ITEM_POSITION_FUNCTION_CALL = 3
 
@@ -122,8 +121,8 @@ def parse_instruction(line, execution_order_number):
     if line.startswith(settings.META_MARK_VARCHANGE):
         filtered_data_string = line.replace(settings.META_MARK_VARCHANGE, "")
         splitter_position = filtered_data_string.find("=")
-        var_name = filtered_data_string[:splitter_position - 1]
-        filtered_data_string = filtered_data_string[splitter_position + 1:]
+        var_name = filtered_data_string[:splitter_position]
+        filtered_data_string = filtered_data_string[splitter_position + 2:]
 
         data_line.data_type = settings.META_MARK_VARCHANGE
         data_line.var_name = var_name

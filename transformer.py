@@ -91,16 +91,15 @@ def process_assign_node(node):
         statement.indentation = node.target.col_offset
     else:
         for target in node.targets:
-            if isinstance(target, ast.Subscript):
+            if isinstance(target, ast.Name):
                 statement.destination_var_name = target.id
                 statement.line_position = target.lineno
                 statement.indentation = target.col_offset
-            else:
-                if isinstance(target, ast.Subscript):
-                    statement.destination_var_name = target.value.id
-                    statement.subscript_key = target.slice.value.id
-                    statement.line_position = target.lineno
-                    statement.indentation = target.col_offset
+            elif isinstance(target, ast.Subscript):
+                statement.destination_var_name = target.value.id
+                statement.subscript_key = target.slice.value.id
+                statement.line_position = target.lineno
+                statement.indentation = target.col_offset
 
     if isinstance(node.value, ast.List):
         for list_item in node.value.elts:
@@ -226,9 +225,9 @@ def generate_data_collector_call(data_collector_call, descriptor_name):
 
     if data_collector_call.is_return_operator == False:
         var_name = data_collector_call.collected_variable
-        file_write_call_string = "{}.write(\"{} \" + \"{} =\" + str({}) + \"\\n\")\n".format(descriptor_name,
-                                                                                             settings.META_MARK_VARCHANGE,
-                                                                                             var_name, var_name)
+        file_write_call_string = "{}.write(\"{} \" + \"{} = \" + str({}) + \"\\n\")\n".format(descriptor_name,
+                                                                                              settings.META_MARK_VARCHANGE,
+                                                                                              var_name, var_name)
         var_change_write_call = indentation + file_write_call_string
 
         result_write_call += var_change_write_call
@@ -265,12 +264,12 @@ def apply_data_collectors(source_code_info):
 
 # TODO: investigate move to def main(). The problem is that "file_descriptor" in the transformed code becomes invisible in some places.
 if __name__ == "__main__":
-    settings = command_line.process_command_line_arguments()
+    user_configuration = command_line.process_command_line_arguments()
 
-    if settings.argument_error is not None:
-        print "Error occured during command-line argument processing: " + str(settings.argument_error)
+    if user_configuration.argument_error is not None:
+        print "Error occured during command-line argument processing: " + str(user_configuration.argument_error)
     else:
-        with open(settings.source_file) as source_file:
+        with open(user_configuration.source_file) as source_file:
             source_file_content = source_file.read()
 
         syntax_tree = ast.parse(source_file_content)
