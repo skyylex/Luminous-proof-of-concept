@@ -16,6 +16,23 @@ One of the approaches is to show what algorithm actually does (instead of how it
 
 At this moment (2016) there are no widely used best practices for such kind of task. In 70th there were flowcharts, unfortunately they have no a lot of effort. 
 
+
+### Usage
+
+##### Common
+
+ Run from command-line interface:
+
+`transformer.py --source-file SOURCE_FILENAME`
+
+where SOURCE_FILENAME - file with algorithm implemented using Python 2.7
+
+##### Examples
+
+There are some examples lay out in the **./samples/** folder. Try them out using next command:
+
+`transformer.py --source-file ./samples/merge_sort.py`
+
 ### Technical details
 
 ##### Several components:
@@ -30,3 +47,5 @@ At this moment (2016) there are no widely used best practices for such kind of t
 
 ##### Data flow.
 - Task 1. Data snapshots diff findout for different types of common data types.
+
+
