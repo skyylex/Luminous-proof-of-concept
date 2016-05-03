@@ -52,10 +52,10 @@ Make sure that `luminous.py` file has permissions to execute, otherwise use foll
 
 ### Limitations
 
-There is a couple of the items to simplify scope of work at early stage:
+There is a couple of items to simplify scope of work at early stages:
 
-1) Algorithms should mostly be described as the set of changes on the input data to produce output data. Ideal examples for such definition will be next types: sort, search, 
+1) Algorithms should mostly be described as set of changes on the input data to produce output data. Ideal examples for such definition will be next types: sort, search. 
 
-(In opposite there are drawing algorithms and other type of algorithm which aren't produce explicit output).
+(In opposite there are drawing algorithms and other type of algorithms which does not produce explicit output).
 
-2) Limited support of the data structures (user defined classes)
+2) Limited support of the data structures (user defined classes). TBD
