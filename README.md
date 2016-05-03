@@ -14,7 +14,7 @@ Learning is the process which every software engineer should be familiar with. U
 The way of solving this problem is in presentation of the ideas that lay inside algorithms.
 One of the approaches is to show what algorithm actually does (instead of how it's actually implemented). In this case we interact with common concept (no math analysis, no difficulties with specific programming language).
 
-***The main goal is to build a visualiser for algorithm.***
+***The main goal is to create effective way to present algorithms.***
 
 At this moment (2016) there are no widely used best practices for such kind of task. In 70th there were flowcharts, unfortunately they have no a lot of effort. 
 
@@ -50,4 +50,12 @@ Make sure that `luminous.py` file has permissions to execute, otherwise use foll
 
 `chmod +x luminous.py`
 
+### Limitations
 
+There is a couple of the items to simplify scope of work at early stage:
+
+1) Algorithms should mostly be described as the set of changes on the input data to produce output data. Ideal examples for such definition will be next types: sort, search, 
+
+(In opposite there are drawing algorithms and other type of algorithm which aren't produce explicit output).
+
+2) Limited support of the data structures (user defined classes)
