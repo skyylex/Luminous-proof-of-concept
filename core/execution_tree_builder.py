@@ -47,12 +47,17 @@ class ExecutedInstruction(object):
         return self.__str__()
 
 
-def build_execution_tree(generated_data_filename):
+def build_function_calls(generated_data_filename):
     with open(generated_data_filename, "r") as collected_data:
         execution_order_number = 1
         parsed_data_lines = []
         for line in collected_data:
             instruction_line = parse_instruction(line, execution_order_number)
+            if instruction_line.data_type == settings.META_MARK_FUNC_CALL_STACKTRACE:
+                function_call_attributes = instruction_line.data_value[-1]
+                if not function_call_attributes[3].__contains__(settings.FILE_DESCRIPTOR_NAME):
+                    continue
+
             parsed_data_lines.append(instruction_line)
             execution_order_number += 1
 
@@ -101,7 +106,7 @@ def build_execution_tree(generated_data_filename):
                     processed_group.function_callees.append(instructions_group)
                     processed_instructions_groups.append(instructions_group)
                     break
-    return processed_instructions_groups[0]
+    return processed_instructions_groups
 
 
 

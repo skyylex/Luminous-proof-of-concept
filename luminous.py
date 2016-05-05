@@ -9,7 +9,7 @@ from core.source_transformer import process_func_call_node
 from core.source_transformer import process_func_declaration_node
 from core.source_transformer import process_return_call_node
 from core.source_transformer import SourceCodeInfo
-from core.source_transformer import build_execution_tree
+from core.execution_tree_builder import build_function_calls
 from core.source_transformer import apply_data_collectors
 
 import ast
@@ -80,6 +80,14 @@ if __name__ == "__main__":
             os.remove(settings.COLLECTED_DATA_FILE)
         execfile(settings.TRANSFORMED_SOURCE_FILE)
 
-        execution_tree = build_execution_tree(settings.COLLECTED_DATA_FILE)
+        execution_function_calls = build_function_calls(settings.COLLECTED_DATA_FILE)
 
-        arff_logger.log_execution_info(0, 0, 0, 0, 0, 0)
+        # TODO move to separate
+        unique_func_names = []
+        for function_call in execution_function_calls:
+            if not (function_call in unique_func_names):
+                unique_func_names.append(function_call.name)
+
+        # TODO move to separate
+
+        arff_logger.log_execution_info(input_size, 0, 0, 0, 0, 0)
