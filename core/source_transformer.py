@@ -113,8 +113,10 @@ def process_assign_node(node):
         print "Subscript assign "
     elif is_value_type(node.value):
         print ""
+    elif isinstance(node.value, ast.Call):
+        print "Function call assign"
     else:
-        print "Unhandled assign type"
+        print "Unhandled assign"
 
     return statement
 
@@ -124,6 +126,8 @@ def process_operand(operand):
         print "Operand is a number."
     elif isinstance(operand, ast.Call):
         print "Operand is function call."
+    elif isinstance(operand, ast.Name):
+        print "Operand is a variable"
     else:
         print "Unhandled operand's processing."
 

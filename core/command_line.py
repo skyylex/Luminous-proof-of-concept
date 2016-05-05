@@ -2,8 +2,8 @@ import sys
 
 # Options
 SOURCE_FILE_OPTION_KEY = "--source-file"
-GENERATE_INPUT_OPTION = "--generate_input"
-INPUT_SIZE_OPTION = "--input_size"
+GENERATE_INPUT_OPTION = "--generate-input"
+INPUT_SIZE_OPTION = "--input-size"
 
 # Option values
 INPUT_OPTION_NUM_LIST = "num_list"
@@ -43,7 +43,7 @@ def validate_execution_option(option):
 
 def store_argument(execution_option, execution_settings):
     if execution_option.key == SOURCE_FILE_OPTION_KEY:
-        execution_settings.source_file = execution_option.value
+        execution_settings.source_code_file = execution_option.value
     elif execution_option.key == GENERATE_INPUT_OPTION and execution_option.value == INPUT_OPTION_NUM_LIST:
         execution_settings.input_generating_type = execution_option.value
     elif execution_option.key == INPUT_SIZE_OPTION:
@@ -71,5 +71,9 @@ def process_command_line_arguments():
                 argument_key = None
             else:
                 argument_key = argument
+
+    if execution_settings.source_code_file == None:
+        print "No source file. Exiting."
+        exit()
 
     return execution_settings

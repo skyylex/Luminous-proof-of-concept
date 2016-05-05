@@ -1,5 +1,6 @@
 import settings
 from ast import literal_eval
+
 STACK_TRACE_ITEM_POSITION_LINE_NUMBER = 1
 STACK_TRACE_ITEM_POSITION_FUNCTION_CALL = 3
 
@@ -53,10 +54,12 @@ def build_function_calls(generated_data_filename):
         parsed_data_lines = []
         for line in collected_data:
             instruction_line = parse_instruction(line, execution_order_number)
-            if instruction_line.data_type == settings.META_MARK_FUNC_CALL_STACKTRACE:
-                function_call_attributes = instruction_line.data_value[-1]
-                if not function_call_attributes[3].__contains__(settings.FILE_DESCRIPTOR_NAME):
-                    continue
+            # if isinstance(instruction_line.data_value, list):
+            #     print instruction_line.data_value[-1]
+            # if instruction_line.data_type == settings.META_MARK_FUNC_CALL_STACKTRACE:
+            #     function_call_attributes = instruction_line.data_value[-1]
+            #     if not function_call_attributes[3].__contains__(settings.FILE_DESCRIPTOR_NAME):
+            #         continue
 
             parsed_data_lines.append(instruction_line)
             execution_order_number += 1
@@ -83,30 +86,31 @@ def build_function_calls(generated_data_filename):
             else:
                 remain_instructions_lines.append(instruction_line)
 
-    if remain_instructions_lines.count > 0:
+    if len(remain_instructions_lines) > 0:
         print "Check unprocessed. The only correct case here is when var_change was done outside the function call."
         print "For example: global functions."
 
     generated_instructions_groups.sort(cmp=compare_instructions)
 
-    processed_instructions_groups = []
-    for instructions_group in generated_instructions_groups:
-        if len(processed_instructions_groups) == 0:
-            processed_instructions_groups.append(instructions_group)
-        else:
-            # find parent function(caller)
-            for processed_group in reversed(processed_instructions_groups):
-                processed_ret_call_order = processed_group.return_call_line.execution_order_number
-                processed_func_call_order = processed_group.function_call_line.execution_order_number
-                current_func_call_order = instructions_group.function_call_line.execution_order_number
-                current_ret_call_order = instructions_group.return_call_line.execution_order_number
-                if ((processed_func_call_order < current_func_call_order)
-                    and (processed_ret_call_order > current_ret_call_order)):
-                    instructions_group.function_caller = processed_group
-                    processed_group.function_callees.append(instructions_group)
-                    processed_instructions_groups.append(instructions_group)
-                    break
-    return processed_instructions_groups
+    # processed_instructions_groups = []
+    # for i in range(0, len(generated_instructions_groups) - 1):
+    #     instructions_group = generated_instructions_groups[i]
+    #     print "order: " +  str(instructions_group.function_call_line.execution_order_number)
+    #     if len(processed_instructions_groups) == 0:
+    #         processed_instructions_groups.append(instructions_group)
+    #     else:
+    #         # find parent function(caller)
+    #         for processed_group in reversed(processed_instructions_groups):
+    #             p_stack_length = len(processed_group.function_call_line.data_value)
+    #             c_stack_length = len(instructions_group.function_call_line.data_value)
+    #             p_order = processed_group.function_call_line.execution_order_number
+    #             c_order = instructions_group.function_call_line.execution_order_number
+    #             if (p_stack_length + 1 == c_stack_length) and (p_order < c_order):
+    #                 instructions_group.function_caller = processed_group
+    #                 processed_group.function_callees.append(instructions_group)
+    #                 processed_instructions_groups.append(instructions_group)
+    #                 break
+    return generated_instructions_groups
 
 
 
@@ -130,6 +134,11 @@ def parse_instruction(line, execution_order_number):
 
         data_line.data_type = settings.META_MARK_FUNC_CALL_STACKTRACE
         data_line.data_value = literal_eval(filtered_data_string)
+        actual_stack_trace = []
+        for stack_item_attributes in data_line.data_value:
+            if stack_item_attributes[0] == "transformed_source_code.out" and stack_item_attributes[2] != "<module>":
+                actual_stack_trace.append(stack_item_attributes)
+        data_line.data_value = actual_stack_trace
         data_line.stacktrace_items = process_stacktrace_info(data_line.data_value)
     elif line.startswith(settings.META_MARK_RETURN_STACKTRACE):
         filtered_data_string = line.replace(settings.META_MARK_RETURN_STACKTRACE, "")

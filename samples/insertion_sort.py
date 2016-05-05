@@ -2,6 +2,7 @@ with open("data.input") as source_file:
     import pickle
     a_list = pickle.load(source_file)
 
+
 def insertion_sort(seq):
     for n in range(1, len(seq)):
         item = seq[n]

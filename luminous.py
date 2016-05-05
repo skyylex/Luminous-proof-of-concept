@@ -29,15 +29,15 @@ if __name__ == "__main__":
         print "Error occured during command-line argument processing: " + str(user_configuration.argument_error)
     else:
         auto_generated_input = user_configuration.input_generating_type == command_line.INPUT_OPTION_NUM_LIST
-        input_size = int(user_configuration.input_generating_size)
-
+        input_size = None
         if auto_generated_input:
+            input_size = int(user_configuration.input_generating_size)
             random_num_list = data_generator.generate_random_list(input_size, 1, 100)
             print "Generated list: " + str(random_num_list)
             with open(settings.INPUT_DATA_FILE, "wb") as input_file:
                 pickle.dump(random_num_list, input_file)
 
-        with open(user_configuration.source_file) as source_file:
+        with open(user_configuration.source_code_file) as source_file:
             source_file_content = source_file.read()
 
         syntax_tree = ast.parse(source_file_content)
@@ -83,11 +83,29 @@ if __name__ == "__main__":
         execution_function_calls = build_function_calls(settings.COLLECTED_DATA_FILE)
 
         # TODO move to separate
+        print "+++++++++"
         unique_func_names = []
+        assignments_count = 0
+        recursive_calls_amount = 0
+        deepest_stack_trace = 0
         for function_call in execution_function_calls:
-            if not (function_call in unique_func_names):
-                unique_func_names.append(function_call.name)
+            ### Unique
+            deepest_function_call = function_call.function_call_line.data_value[-1]
+            function_name = deepest_function_call[2]
+            if function_name not in unique_func_names:
+                unique_func_names.append(function_name)
+
+            assignments_count += len(function_call.intermediate_code_lines)
+            current_stacktrace = function_call.function_call_line.data_value
+            recursive_calls_amount += len(current_stacktrace) - 1
+            if len(current_stacktrace) - 1 > deepest_stack_trace:
+                deepest_stack_trace = len(current_stacktrace) - 1
 
         # TODO move to separate
 
-        arff_logger.log_execution_info(input_size, 0, 0, 0, 0, 0)
+        import os
+
+        path_list = user_configuration.source_code_file.split(os.sep)
+        source_file_name = path_list[-1]
+
+        arff_logger.log_execution_info(input_size, assignments_count, recursive_calls_amount, deepest_stack_trace, len(unique_func_names), source_file_name)

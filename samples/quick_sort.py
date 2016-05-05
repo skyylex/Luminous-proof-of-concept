@@ -14,9 +14,9 @@ def quick_sort(seq):
         right = []
         for x in seq[1:]:
             if x < pivot:
-                left.append(x)
+                left += [x]
             else:
-                right.append(x)
+                right += [x]
 
 
         return quick_sort(left) + [pivot] + quick_sort(right)
