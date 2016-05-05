@@ -5,7 +5,10 @@ Proof of concept for the algorithm's interpreter and visualiser
 
 ### Idea
 
-Learning is the process which every software engineer should be familiar with. Unfortunately there are a lot of difficulties that prevent from effective learning. There is a common principle which declares that complexity depends on the number of components of a problem you don't know. It's like an equation with multiple variables, existence of each variable increases the complexity of the solution. It could be applied to many areas of people's activity. So the key point in this is next: ***reduce number of unknown to reduce complexity.***
+Learning is the process which every software engineer should be familiar with.
+Unfortunately there are a lot of difficulties that prevent from effective learning.
+There is a common principle which declares that complexity depends on the number of components of a problem you don't know.
+It's like an equation with multiple variables, existence of each variable increases the complexity of the solution. It could be applied to many areas of people's activity. So the key point in this is next: ***reduce number of unknown to reduce complexity.***
 
 ### Goal
 
@@ -26,7 +29,7 @@ At this moment (2016) there are no widely used best practices for such kind of t
 ### Output
 
 - **transformed_source_code.out**: transformed source code(received as input) with additional file write calls.
-- **data_collection.out**: data gathered during the evalution of the *transformed_source_code.out* source file
+- **data_collection.out**: data gathered during the execution of the *transformed_source_code.out* source file
 
 ### Usage
 

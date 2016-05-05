@@ -1,5 +1,7 @@
 a_list = [54, 26, 93, 17, 77, 31, 44, 55, 20]
 
+
+
 def merge_sort(a):
     if len(a) > 1:
         mid = len(a) // 2
@@ -33,4 +35,5 @@ def merge_sort(a):
 
     return
 
-merge_sort(a_list)
+with open("data.input") as source_file:
+    merge_sort(a_list)

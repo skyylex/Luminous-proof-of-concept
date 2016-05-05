@@ -1,7 +1,12 @@
 import sys
 
-
+# Options
 SOURCE_FILE_OPTION_KEY = "--source-file"
+GENERATE_INPUT_OPTION = "--generate_input"
+INPUT_SIZE_OPTION = "--input_size"
+
+# Option values
+INPUT_OPTION_NUM_LIST = "num_list"
 
 
 class ArgumentError:
@@ -17,41 +22,45 @@ class ExecutionOption:
 
 class ExecutionSettings:
     def __init__(self):
-        self.source_file = None
+        self.source_code_file = None
+        self.input_generating_type = None
+        self.input_generating_size = None
         self.argument_error = None
 
 
 def check_option_key(argument_key):
-    # TODO: extend
-    return argument_key in [SOURCE_FILE_OPTION_KEY]
+    return argument_key in [SOURCE_FILE_OPTION_KEY, GENERATE_INPUT_OPTION, INPUT_SIZE_OPTION]
 
 
 def validate_arguments_count(arguments_count):
-    # TODO: extend
-    return arguments_count == 3
+    return arguments_count == 3 or arguments_count == 7
 
 
 def validate_execution_option(option):
-    # TODO: extend
+    # TODO: improve validation
     return check_option_key(option.key)
 
 
 def store_argument(execution_option, execution_settings):
-    # TODO: extend
     if execution_option.key == SOURCE_FILE_OPTION_KEY:
         execution_settings.source_file = execution_option.value
+    elif execution_option.key == GENERATE_INPUT_OPTION and execution_option.value == INPUT_OPTION_NUM_LIST:
+        execution_settings.input_generating_type = execution_option.value
+    elif execution_option.key == INPUT_SIZE_OPTION:
+        execution_settings.input_generating_size = execution_option.value
 
 
 def process_command_line_arguments():
     execution_settings = ExecutionSettings()
 
-    if validate_arguments_count(len(sys.argv)):
+    arguments = sys.argv
+    if validate_arguments_count(len(arguments)):
         argument_key = None
-        for argument_index in range(1, len(sys.argv)):
+        for argument_index in range(1, len(arguments)):
             if argument_index == 0:
                 continue
 
-            argument = sys.argv[argument_index]
+            argument = arguments[argument_index]
             if argument_key is not None:
                 option = ExecutionOption(argument_key, argument)
                 if not validate_execution_option(option):

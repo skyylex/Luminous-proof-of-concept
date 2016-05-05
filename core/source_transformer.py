@@ -5,7 +5,7 @@ import traceback
 from operator import attrgetter
 
 import settings
-from data_analyser import analyse_collected_data
+from execution_tree_builder import build_execution_tree
 
 # TODO move classes to separate files
 

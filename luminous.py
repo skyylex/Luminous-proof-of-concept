@@ -2,15 +2,15 @@
 
 from core import command_line
 from core import settings
-from core import transformer
+from core import source_transformer
 
-from core.transformer import process_assign_node
-from core.transformer import process_func_call_node
-from core.transformer import process_func_declaration_node
-from core.transformer import process_return_call_node
-from core.transformer import SourceCodeInfo
-from core.transformer import analyse_collected_data
-from core.transformer import apply_data_collectors
+from core.source_transformer import process_assign_node
+from core.source_transformer import process_func_call_node
+from core.source_transformer import process_func_declaration_node
+from core.source_transformer import process_return_call_node
+from core.source_transformer import SourceCodeInfo
+from core.source_transformer import build_execution_tree
+from core.source_transformer import apply_data_collectors
 
 import ast
 import os
@@ -63,7 +63,7 @@ if __name__ == "__main__":
             os.remove(settings.COLLECTED_DATA_FILE)
         execfile(settings.TRANSFORMED_SOURCE_FILE)
 
-        analyse_collected_data(settings.COLLECTED_DATA_FILE)
+        execution_tree = build_execution_tree(settings.COLLECTED_DATA_FILE)
 
         print transformed_source_code
 

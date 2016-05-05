@@ -47,7 +47,7 @@ class ExecutedInstruction(object):
         return self.__str__()
 
 
-def analyse_collected_data(generated_data_filename):
+def build_execution_tree(generated_data_filename):
     with open(generated_data_filename, "r") as collected_data:
         execution_order_number = 1
         parsed_data_lines = []
@@ -101,15 +101,8 @@ def analyse_collected_data(generated_data_filename):
                     processed_group.function_callees.append(instructions_group)
                     processed_instructions_groups.append(instructions_group)
                     break
+    return processed_instructions_groups[0]
 
-    print "processed_instructions_groups \n\n"
-
-    for instructions_group in processed_instructions_groups:
-        print "parent: " + str(instructions_group.function_caller)
-        print "childs: " + str(instructions_group.function_callees)
-        print "order: " + str(instructions_group.function_call_line.execution_order_number)
-        print "order: " + str(instructions_group.return_call_line.execution_order_number)
-        print "\n"
 
 
 def compare_instructions(instructions_group1, instructions_group2):
@@ -162,3 +155,13 @@ def process_stacktrace_info(stack_trace):
                 if stack_trace_item_structure.function_call.startswith(settings.FILE_DESCRIPTOR_NAME) == False:
                     stack_trace_items.append(stack_trace_item_structure)
     return stack_trace_items
+
+def collect_amount_attributes(instruction_groups):
+    print "processed_instructions_groups \n\n"
+
+    for instructions_group in instruction_groups:
+        print "parent: " + str(instructions_group.function_caller)
+        print "childs: " + str(instructions_group.function_callees)
+        print "order: " + str(instructions_group.function_call_line.execution_order_number)
+        print "order: " + str(instructions_group.return_call_line.execution_order_number)
+        print "\n"
