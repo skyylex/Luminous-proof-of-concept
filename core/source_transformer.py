@@ -143,7 +143,8 @@ def process_func_call_node(node):
     items = []
     for arg in node.args:
         # ast.Name
-        items.append(arg.id)
+        if isinstance(arg, ast.Name):
+            items.append(arg.id)
 
     function_call.func_name = node.func.id
     function_call.arguments = items

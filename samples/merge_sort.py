@@ -1,7 +1,5 @@
-import __builtin__
-import pickle
-
 with open("data.input") as source_file:
+    import pickle
     a_list = pickle.load(source_file)
 
 
@@ -41,4 +39,5 @@ def merge_sort(a):
 result = merge_sort(a_list)
 
 with open("data.output", "w") as output:
+    import pickle
     output.write(str(result))
