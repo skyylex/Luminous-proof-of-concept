@@ -1,5 +1,8 @@
-a_list = [54, 26, 93, 17, 77, 31, 44, 55, 20]
+import __builtin__
+import pickle
 
+with open("data.input") as source_file:
+    a_list = pickle.load(source_file)
 
 
 def merge_sort(a):
@@ -33,7 +36,9 @@ def merge_sort(a):
             j += 1
             k += 1
 
-    return
+    return a
 
-with open("data.input") as source_file:
-    merge_sort(a_list)
+result = merge_sort(a_list)
+
+with open("data.output", "w") as output:
+    output.write(str(result))

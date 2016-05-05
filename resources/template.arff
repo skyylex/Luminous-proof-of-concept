@@ -1,0 +1,15 @@
+% 1. Title: Algorithms execution internal changes
+%
+% 2. Sources:
+%      (a) Creator: Y.A. Lapitsky
+%      (b) Donor: Algorithms (https://github.com/nryoung/algorithms)
+%      (c) Date: May, 2016
+%
+@RELATION algorithm
+
+@ATTRIBUTE input_data_size  NUMERIC
+@ATTRIBUTE assignments_number   NUMERIC
+@ATTRIBUTE recursive_calls_number  NUMERIC
+@ATTRIBUTE deepest_recursive_call   NUMERIC
+@ATTRIBUTE different_functions_number   NUMERIC
+@ATTRIBUTE class        {algorithm-merge-sort, algorithm-quick-sort, algorithm-heap-sort, algorithm-bubble-sort}

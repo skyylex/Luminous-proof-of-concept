@@ -16,6 +16,9 @@ import ast
 import os
 import traceback
 from operator import attrgetter
+import pickle
+
+from support import data_generator
 
 # TODO: investigate move to def main(). The problem is that "file_descriptor" in the transformed code becomes invisible in some places.
 if __name__ == "__main__":
@@ -24,6 +27,15 @@ if __name__ == "__main__":
     if user_configuration.argument_error is not None:
         print "Error occured during command-line argument processing: " + str(user_configuration.argument_error)
     else:
+        auto_generated_input = user_configuration.input_generating_type == command_line.INPUT_OPTION_NUM_LIST
+        input_size = int(user_configuration.input_generating_size)
+
+        if auto_generated_input:
+            random_num_list = data_generator.generate_random_list(input_size, 1, 100)
+            print "Generated list: " + str(random_num_list)
+            with open(settings.INPUT_DATA_FILE, "wb") as input_file:
+                pickle.dump(random_num_list, input_file)
+
         with open(user_configuration.source_file) as source_file:
             source_file_content = source_file.read()
 
@@ -48,8 +60,12 @@ if __name__ == "__main__":
                 function = process_func_declaration_node(node)
                 function_declarations.append(function)
             elif isinstance(node, ast.Call):
-                function_call = process_func_call_node(node)
-                function_calls.append(function_call)
+                if "id" in node.func._fields and node.func.id != "open":
+                    function_call = process_func_call_node(node)
+                    function_calls.append(function_call)
+                elif "id" not in node.func._fields and "value" not in node.func._fields:
+                    function_call = process_func_call_node(node)
+                    function_calls.append(function_call)
             elif isinstance(node, ast.Return):
                 return_call = process_return_call_node(node)
                 return_calls.append(return_call)
@@ -64,15 +80,3 @@ if __name__ == "__main__":
         execfile(settings.TRANSFORMED_SOURCE_FILE)
 
         execution_tree = build_execution_tree(settings.COLLECTED_DATA_FILE)
-
-        print transformed_source_code
-
-        print "\nFunction name used in calls"
-        for call in function_calls:
-            print call
-        print "\nFunction declaration"
-        for declaration in function_declarations:
-            print declaration
-        print "\n Collected statements"
-        for statement in statements:
-            print statement
