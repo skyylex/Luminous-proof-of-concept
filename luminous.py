@@ -18,6 +18,7 @@ import traceback
 from operator import attrgetter
 import pickle
 
+from support import arff_logger
 from support import data_generator
 
 # TODO: investigate move to def main(). The problem is that "file_descriptor" in the transformed code becomes invisible in some places.
@@ -80,3 +81,5 @@ if __name__ == "__main__":
         execfile(settings.TRANSFORMED_SOURCE_FILE)
 
         execution_tree = build_execution_tree(settings.COLLECTED_DATA_FILE)
+
+        arff_logger.log_execution_info(0, 0, 0, 0, 0, 0)
