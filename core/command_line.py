@@ -1,4 +1,5 @@
 import sys
+import argparse
 
 # Options
 SOURCE_FILE_OPTION_KEY = "--source-file"
@@ -21,11 +22,11 @@ class ExecutionOption:
 
 
 class ExecutionSettings:
-    def __init__(self):
-        self.source_code_file = None
-        self.input_generating_type = None
-        self.input_generating_size = None
-        self.argument_error = None
+    def __init__(self, namespace, error=None):
+        self.source_file = namespace.source_file
+        self.input_generating_type = namespace.gen_input_type
+        self.input_generating_size = namespace.gen_input_size
+        self.argument_error = error
 
 
 def check_option_key(argument_key):
@@ -51,26 +52,16 @@ def store_argument(execution_option, execution_settings):
 
 
 def process_command_line_arguments():
-    execution_settings = ExecutionSettings()
+    parser = argparse.ArgumentParser(description='Hello world')
+    parser.add_argument('--source-file', type=str, required=True, help='file with algorithm to visualize')
+    parser.add_argument('--gen-input-type', type=str, choices=['num_list'], help='supported types: [num_list]')
+    parser.add_argument('--gen-input-size', type=int, help='size of generated input')
+    parser.add_argument('--source-format', type=str, choices=['JSON'])
 
-    arguments = sys.argv
-    if validate_arguments_count(len(arguments)):
-        argument_key = None
-        for argument_index in range(1, len(arguments)):
-            if argument_index == 0:
-                continue
+    args = sys.argv[1:]
+    parsed_arguments = parser.parse_args(args)
 
-            argument = arguments[argument_index]
-            if argument_key is not None:
-                option = ExecutionOption(argument_key, argument)
-                if not validate_execution_option(option):
-                    execution_settings.argument_error = ArgumentError(argument)
-                    break
-                else:
-                    store_argument(option, execution_settings)
-                argument_key = None
-            else:
-                argument_key = argument
+    execution_settings = ExecutionSettings(parsed_arguments)
 
     if execution_settings.source_code_file == None:
         print "No source file. Exiting."
